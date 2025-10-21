@@ -1,0 +1,279 @@
+﻿ALL of the games are based on kinetic vr -> no need any control all controls are controlled by their body movement 
+-> game 1 and 2 will be played on Mon, tues and thurs  and how they play will affect their world which will be shown to them at the end of the game
+* but they cannot do anything about it only until wed and FridayGame 1
+based on subways surfers 
+TERM 1: Recycling materials
+Mechanic
+Description
+Remarks
+Swipe Left/Right
+Dodge trash piles and pollution clouds
+Avoid littering and poor habits
+Jump / Duck (physical motion in VR)
+Leap over waste bins or under power cables
+Stay alert to environmental hazards
+Collect Recyclables
+Grab plastic bottles, cans, paper and cardboards as you run
+Teaches recycling identification
+Avoid Non-Recyclables
+Collecting these slows you down or loses points
+Reinforces sorting awareness
+Separation of recyclables
+After the running section, there will be a section for students to separate the items into the correct recycling bins 
+
+Scores shown after everything
+Based on the accuracy of the recycling, collection and time taken (collection max time is one minute, separation time is 1 min)
+Animation shown while recycling behind is like their face drowning in the pile of rubbish 
+
+TERM 2: E-waste
+Mechanic
+Description
+Remarks
+Swipe Left/Right
+Dodge piles of tangled wires, old TVs, and fallen gadgets
+Keeps the reflex-based Subway Surfers feel
+Jump / Duck (VR motion)
+Jump over broken circuit boards or duck under low-hanging cables
+Encourages spatial awareness and movement
+Collect E-Waste Items
+Pick up phones, laptops, batteries, keyboards, tablets
+Teaches kids to recognise what counts as e-waste
+Avoid Toxic Waste / Wrong Items
+Skip leaking batteries, wet appliances, or household trashÔÇö these slow you down or lose points
+Builds understanding that e-waste must be handled carefully
+End Section: Sorting Game
+Sort collected items into the right bins: Batteries, Electronics, Non-E-waste
+Reinforces proper e-waste recycling habits
+
+TERM 3: Food waste 
+Mechanic
+Description
+Remarks
+Swipe Left/Right
+Dodge spoiled food, trash bins, and greasy spills on the floor
+Encourages alertness and hygiene awareness
+Jump / Duck (VR motion)
+Jump over fallen trays or duck under hanging canteen banners
+Keeps the classic Subway Surfers movement
+Collect Edible Food
+Pick up leftover rice, bread, fruits still good for donation or compost
+Teaches kids what ÔÇ£still edibleÔÇØ means
+Avoid Rotten Food
+Skip over moldy fruits or spoiled leftovers ÔÇö they reduce points or slow you down
+Reinforces understanding of food spoilage
+End Section: Sorting Game
+Sort collected food into three bins: Edible ÔåÆ Donate, Spoiled ÔåÆ Compost, Non-Food ÔåÆ Trash
+Strengthens 3R learning: Reduce, Reuse, Recycle (food edition)
+
+TERM 4: Energy conservation
+Mechanic
+Description
+Remarks
+Swipe Left/Right
+Dodge ÔÇ£energy vampiresÔÇØ ÔÇö e.g. TVs left on standby, air-cons blasting, open fridges
+Teaches awareness of household energy wastage
+Jump / Duck (VR motion)
+Leap over power cables or duck under hanging wires
+Keeps gameplay exciting and movement-based
+Collect Energy-Savers
+Grab LED bulbs, solar panels, fans, power strips
+Reinforces what good energy-saving tools look like
+Avoid Energy Wasters
+Skip over running taps, plugged chargers, and unnecessary devices
+Instills energy-saving habits through repetition
+End Section: Match Appliances
+After the run, players pair appliances to the correct energy-saving habits (e.g. Aircon ÔåÆ 25┬░C, Lights ÔåÆ Switch off)
+Adds interactive learning beyond reflex gameplay
+entry level -> lesser obstacles, more time (1 min and 1 min) , lesser rubbish to collect.
+advance level -> more obstacles, lesser time (45s, 45s), more rubbish to collect 
+Highest level -> a lot of obstacles, 35s, 35s, a lot more rubbish 
+-> when their high score reach a certain level they will be level up with 
+-> Scores renew every term 
+Term 1: Recycling 
+Term 2: E-waste 
+Term 3: Food Waste
+Term 4: Energy conservation 
+
+Left and rights -> by running and moving left and right 
+
+
+
+Game 2 
+EcoEater: The Compost Quest
+Inspired by: minecraft and adopt me 
+Start Round
+Students enter blocky garden/island. Compi appears as their companion.
+Collect Organic Scraps
+Quickly explore the mini-garden to grab as many scraps as possible (fruit peels, leaves, veggie trimmings). -> 2-min countdown visible.
+Feed Compi
+Drag-and-drop scraps into CompiÔÇÖs compost bin.     Compi reacts immediately:
+Healthy: ÔÇ£Yum! Plants will grow!ÔÇØ
+Unbalanced: ÔÇ£HmmÔÇª not enough variety.ÔÇØ        
+Immediate Feedback
+Points or garden growth indicators appear instantly. Visual: soil color darkens, plants sprout, Compi jumps happily
+Garden evolves over time (even when the student isnÔÇÖt playing)
+Plants grow slowly, animals appear, compost matures.
+When they return, they see their progress accumulated, like Minecraft crops growing overnight.->  Makes students feel responsible for long-term success.
+Plants grow gradually, block by block:
+ seedling block
+small plant block.
+full flower/fruit tree.
+Animals appear as the ecosystem stabilizes: bees, butterflies, worms.
+
+*Students can see cause-effect visually without reading too much.
+Daily missions (items will be hiding)E.g. 
+Feed Compi specific scraps: e.g., ÔÇ£Feed 1 apple peel and 1 carrot leaf.ÔÇØ
+Discover rare mini-animal: e.g., ÔÇ£Find the hidden earthworm block in your garden.ÔÇØ
+Plant or grow a block: e.g., ÔÇ£Grow 1 flower or 1 vegetable block.ÔÇØ
+Experiment challenge: e.g., ÔÇ£Combine 2 scraps to see which grows the plant fastest.ÔÇØ
+Teaching or educating them afterwards (just a quick summary) 
+
+Factors Affecting Compi Score (scoreboard)
+Factor
+How ItÔÇÖs Measured
+Points / Weight
+Scraps Collected
+Number of organic scraps collected during 2-min round
+20%
+Scrap Variety / Balanced Diet
+Feeding different types of scraps (fruit, veggies, leaves)
+20%
+Garden Growth
+Number of plants grown, blocks completed, mini-animals unlocked
+25%
+Daily Mission Completion
+Missions like ÔÇ£feed 1 apple peel & 1 carrot leafÔÇØ or ÔÇ£find hidden earthworm blockÔÇØ
+20%
+Efficiency
+Completing 2-min round without wasting time; finishing before timer
+15%
+Total Compi Score = 100 points per round (or converted to %).
+
+Game 3 (wed and fri)
+Based on minecraft, adopt me, pokemon go 
+Student scans NFC card ÔåÆ loads their city district and avatar.
+Shared classroom world already has:
+Roads, parks, housing, schools, small businesses.
+Compi-like eco-creature representing city health.
+Citizens moving around, smog visible if carbon is high.
+Countdown timer: 2:00 minutes.
+0:00ÔÇô0:15 ÔÇô Quick Overview
+Pop-up tip: ÔÇ£Welcome! Your cityÔÇÖs air quality is low. Collect scraps, add green spaces, and feed energy to buildings.ÔÇØ
+Visual:
+Smog in certain areas
+Park blocks are empty
+Citizen mood meters low in some zones
+0:15ÔÇô1:15 ÔÇô Exploration & Action
+Student walks avatar around their district in like Roblox (bloxburg) world.
+Actions available:
+Place solar panels on empty building blocks.
+
+Add green space: plant flowers, trees, or community gardens.
+
+Upgrade roads: convert car lane ÔåÆ bike lane or pedestrian path.
+
+Instant visual feedback:
+Smog disappears around upgraded areas
+Citizens smile when green spaces or renewable energy added
+Compi jumps happily when fed correctly
+Mini Challenge
+Example: ÔÇ£Reduce carbon in your district by 10% in this round.ÔÇØ
+Or: ÔÇ£Add 2 green blocks without increasing smog.ÔÇØ
+If by the end of the term they succeeded then they earn extra points 
+Student strategises in real-time: chooses which buildings or roads to upgrade first.
+Visual cues:
+Color-coded carbon meter (green ÔåÆ healthy, red ÔåÆ unhealthy)
+
+Citizens react to changes (smile/frown)
+
+CompiÔÇÖs animation shows immediate effect of actions
+
+Air more foggy or clear, lifeline 
+
+1:50ÔÇô2:00 ÔÇô End-of-Round Feedback
+Timer hits 0 ÔåÆ city pauses
+Teaching Feedback Screen appears:
+City before vs after round (smog reduction, green space added)
+Text:ÔÇ£You reduced carbon by 12%! Citizens are happier and parks thrive.ÔÇØ, ÔÇ£Adding green space helped absorb carbon. Well done!ÔÇØ
+ 
+Class leaderboard: Based on World Health
+ÔÇ£World HealthÔÇØ 
+The shared EcoDistrict city/world has a composite score reflecting cumulative actions from all students:
+Factor
+How ItÔÇÖs Measured
+Example Visual / Feedback
+Carbon / Pollution Level
+Reduction in smog, emissions, or energy waste
+Smog blocks fade ÔåÆ city looks cleaner
+Green Spaces
+Number of trees, gardens, parks added by students
+More trees, flowers, butterflies appear
+Citizen Happiness
+Mood meters across the city
+Citizens smile/frown depending on overall city health
+Renewable Energy Usage
+Solar panels, wind turbines installed
+City energy indicators turn green
+Mini-Creature & Eco-Element Growth
+Compi-like creatures, animals, bees, worms
+Ecosystem appears lively ÔåÆ shows thriving environment
+
+2´©ÅÔâú Weighting for Class Ranking
+Each factor contributes to total world health score. Example weighting:
+Factor
+Weight
+Carbon / Pollution Reduction
+30%
+Green Spaces & Trees
+25%
+Citizen Happiness
+20%
+Renewable Energy / Eco Upgrades
+15%
+Mini-creatures / Ecosystem Diversity
+10%
+The sum gives total class world health (0ÔÇô100%).
+Classes can be ranked termly
+How Class Ranking Works
+Total world health = class score.
+Classes ranked against other classes or schools:
+Highest total world health ÔåÆ ÔÇ£Green Champion ClassÔÇØ
+Next ÔåÆ Silver / Bronze.
+ Integration With Daily & Weekly Cycle
+Mon/Tue/Thu: Students play VR games ÔåÆ actions affects world health
+Wed/Fri: Shared world revealed; class sees current health.
+Students discuss or implement ÔÇ£Fix ItÔÇØ ideas collectively.
+End-of-Term: Total world health determines class ranking/award
+Individual Contribution to the Shared World
+What ÔÇ£ContributionÔÇØ Means
+Consistency of Recycling
+Measured by:
+How often a student recycles items in the smart bin each week.
+Rewards daily habit formation and responsible behaviour.
+Scoring Example:
+Recycled every day of the week ÔåÆ 100%
+Recycled 3/5 days ÔåÆ 60%
+Weight: 30% of total ranking
+Performance in VR Games
+Subway VR / EcoEater:
+Accuracy in collecting correct items
+Avoiding obstacles (Subway VR)
+Efficiency (time taken)
+CompiCraft: diversity of scraps, garden growth, daily mission completion
+Scoring Example:
+Points converted into % relative to highest score in class
+Weight: 40% of total ranking
+3´©ÅÔâú Contribution to Class World
+Measured by:
+Impact of studentÔÇÖs actions on the shared EcoDistrict world.
+Includes planting green spaces, adding renewable energy, reducing carbon, unlocking mini-creatures.
+Scoring Example:
+Student A contributed 15% of the total weekly improvement ÔåÆ 15% score
+Weight: 30% of total ranking
+ Overall Ranking Calculation
+Individual Score (%) = 
+(Consistency of Recycling ├ù 0.3) +
+(Compi Score + Subway VR Performance ├ù 0.4) +
+(Class World Contribution ├ù 0.3)
+Students ranked from highest total score to lowest.
+

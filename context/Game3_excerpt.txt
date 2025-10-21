@@ -1,0 +1,126 @@
+﻿Efficiency
+Completing 2-min round without wasting time; finishing before timer
+15%
+Total Compi Score = 100 points per round (or converted to %).
+
+Game 3 (wed and fri)
+Based on minecraft, adopt me, pokemon go 
+Student scans NFC card ÔåÆ loads their city district and avatar.
+Shared classroom world already has:
+Roads, parks, housing, schools, small businesses.
+Compi-like eco-creature representing city health.
+Citizens moving around, smog visible if carbon is high.
+Countdown timer: 2:00 minutes.
+0:00ÔÇô0:15 ÔÇô Quick Overview
+Pop-up tip: ÔÇ£Welcome! Your cityÔÇÖs air quality is low. Collect scraps, add green spaces, and feed energy to buildings.ÔÇØ
+Visual:
+Smog in certain areas
+Park blocks are empty
+Citizen mood meters low in some zones
+0:15ÔÇô1:15 ÔÇô Exploration & Action
+Student walks avatar around their district in like Roblox (bloxburg) world.
+Actions available:
+Place solar panels on empty building blocks.
+
+Add green space: plant flowers, trees, or community gardens.
+
+Upgrade roads: convert car lane ÔåÆ bike lane or pedestrian path.
+
+Instant visual feedback:
+Smog disappears around upgraded areas
+Citizens smile when green spaces or renewable energy added
+Compi jumps happily when fed correctly
+Mini Challenge
+Example: ÔÇ£Reduce carbon in your district by 10% in this round.ÔÇØ
+Or: ÔÇ£Add 2 green blocks without increasing smog.ÔÇØ
+If by the end of the term they succeeded then they earn extra points 
+Student strategises in real-time: chooses which buildings or roads to upgrade first.
+Visual cues:
+Color-coded carbon meter (green ÔåÆ healthy, red ÔåÆ unhealthy)
+
+Citizens react to changes (smile/frown)
+
+CompiÔÇÖs animation shows immediate effect of actions
+
+Air more foggy or clear, lifeline 
+
+1:50ÔÇô2:00 ÔÇô End-of-Round Feedback
+Timer hits 0 ÔåÆ city pauses
+Teaching Feedback Screen appears:
+City before vs after round (smog reduction, green space added)
+Text:ÔÇ£You reduced carbon by 12%! Citizens are happier and parks thrive.ÔÇØ, ÔÇ£Adding green space helped absorb carbon. Well done!ÔÇØ
+ 
+Class leaderboard: Based on World Health
+ÔÇ£World HealthÔÇØ 
+The shared EcoDistrict city/world has a composite score reflecting cumulative actions from all students:
+Factor
+How ItÔÇÖs Measured
+Example Visual / Feedback
+Carbon / Pollution Level
+Reduction in smog, emissions, or energy waste
+Smog blocks fade ÔåÆ city looks cleaner
+Green Spaces
+Number of trees, gardens, parks added by students
+More trees, flowers, butterflies appear
+Citizen Happiness
+Mood meters across the city
+Citizens smile/frown depending on overall city health
+Renewable Energy Usage
+Solar panels, wind turbines installed
+City energy indicators turn green
+Mini-Creature & Eco-Element Growth
+Compi-like creatures, animals, bees, worms
+Ecosystem appears lively ÔåÆ shows thriving environment
+
+2´©ÅÔâú Weighting for Class Ranking
+Each factor contributes to total world health score. Example weighting:
+Factor
+Weight
+Carbon / Pollution Reduction
+30%
+Green Spaces & Trees
+25%
+Citizen Happiness
+20%
+Renewable Energy / Eco Upgrades
+15%
+Mini-creatures / Ecosystem Diversity
+10%
+The sum gives total class world health (0ÔÇô100%).
+Classes can be ranked termly
+How Class Ranking Works
+Total world health = class score.
+Classes ranked against other classes or schools:
+Highest total world health ÔåÆ ÔÇ£Green Champion ClassÔÇØ
+Next ÔåÆ Silver / Bronze.
+ Integration With Daily & Weekly Cycle
+Mon/Tue/Thu: Students play VR games ÔåÆ actions affects world health
+Wed/Fri: Shared world revealed; class sees current health.
+Students discuss or implement ÔÇ£Fix ItÔÇØ ideas collectively.
+End-of-Term: Total world health determines class ranking/award
+Individual Contribution to the Shared World
+What ÔÇ£ContributionÔÇØ Means
+Consistency of Recycling
+Measured by:
+How often a student recycles items in the smart bin each week.
+Rewards daily habit formation and responsible behaviour.
+Scoring Example:
+Recycled every day of the week ÔåÆ 100%
+Recycled 3/5 days ÔåÆ 60%
+Weight: 30% of total ranking
+Performance in VR Games
+Subway VR / EcoEater:
+Accuracy in collecting correct items
+Avoiding obstacles (Subway VR)
+Efficiency (time taken)
+CompiCraft: diversity of scraps, garden growth, daily mission completion
+Scoring Example:
+Points converted into % relative to highest score in class
+Weight: 40% of total ranking
+3´©ÅÔâú Contribution to Class World
+Measured by:
+Impact of studentÔÇÖs actions on the shared EcoDistrict world.
+Includes planting green spaces, adding renewable energy, reducing carbon, unlocking mini-creatures.
+Scoring Example:
+Student A contributed 15% of the total weekly improvement ÔåÆ 15% score
+Weight: 30% of total ranking
