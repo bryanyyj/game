@@ -1,0 +1,2 @@
+# This game uses only built-in Python libraries
+# tkinter is included with Python

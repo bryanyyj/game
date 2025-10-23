@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  eco-district-game:
+    build: .
+    environment:
+      - DISPLAY=${DISPLAY}
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw  # For Linux X11 forwarding
+    network_mode: host  # For direct access to display
+    stdin_open: true
+    tty: true

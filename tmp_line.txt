@@ -1,1 +1,0 @@
-        target = self.challenge_target
