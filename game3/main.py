@@ -50,9 +50,9 @@ class Tile:
 @dataclass
 class Player:
     pos: Vec2 = (1, 1)
-    money: int = 50  # Starting money to buy items
-    solar_panels_available: int = 3  # Number of solar panels available to place
-    green_spaces_available: int = 3  # Number of green spaces available to place
+    money: int = 150  # Starting money to buy items (increased for better gameplay)
+    solar_panels_available: int = 5  # Number of solar panels available to place
+    green_spaces_available: int = 5  # Number of green spaces available to place
 
 
 @dataclass
@@ -72,7 +72,7 @@ class Citizen:
 class Game:
     def __init__(self, root: tk.Tk):
         self.root = root
-        self.root.title("EcoDistrict: Game 3 Prototype (Python/Tkinter)")
+        self.root.title("EcoDistrict: Game 3 Prototype")
         self.canvas = tk.Canvas(root, width=CANVAS_W, height=CANVAS_H, bg="#1e1e1e")
         self.canvas.pack()
 
@@ -80,6 +80,12 @@ class Game:
         self.grid: List[List[Tile]] = self._generate_world()
         self.player = Player(pos=(GRID_W // 2, GRID_H // 2))
         self.citizens: List[Citizen] = [Citizen([random.uniform(0, GRID_W-1), random.uniform(0, GRID_H-1)]) for _ in range(20)]
+
+        # Drag-and-drop inventory state
+        self.dragging_item = None  # Type of item being dragged: 'solar', 'green', 'bin', etc.
+        self.drag_start_pos = None  # Where the drag started
+        self.mouse_pos = None  # Current mouse position
+        self.hover_tile = None  # Which tile is being hovered over
 
         # Metrics (0..100)
         self.start_carbon = 62
@@ -99,10 +105,10 @@ class Game:
 
         # Daily missions system
         self.daily_missions = [
-            {"id": 1, "title": "Clean 3 pollution spots", "completed": False, "target": 3, "current": 0, "type": "clean_pollution"},
-            {"id": 2, "title": "Install 2 solar panels", "completed": False, "target": 2, "current": 0, "type": "install_solar"},
-            {"id": 3, "title": "Plant 4 green spaces", "completed": False, "target": 4, "current": 0, "type": "plant_green"},
-            {"id": 4, "title": "Reduce carbon by 8%", "completed": False, "target": 8, "current": 0, "type": "reduce_carbon"}
+            {"id": 1, "title": "Clean 3 pollution spots", "completed": False, "target": 3, "current": 0, "type": "clean_pollution", "reward": 20},
+            {"id": 2, "title": "Install 2 solar panels", "completed": False, "target": 2, "current": 0, "type": "install_solar", "reward": 25},
+            {"id": 3, "title": "Plant 4 green spaces", "completed": False, "target": 4, "current": 0, "type": "plant_green", "reward": 25},
+            {"id": 4, "title": "Reduce carbon by 8%", "completed": False, "target": 8, "current": 0, "type": "reduce_carbon", "reward": 40}
         ]
         self.missions_visible = False  # To toggle missions display
 
@@ -111,15 +117,14 @@ class Game:
         self.compi_phase = 0.0
 
         # Tutorial system - Track tutorial progress
-        self.tutorial_step = 0  # 0 = not started, 1-6 = tutorial steps
+        self.tutorial_step = 0  # 0 = not started, 1-5 = tutorial steps
         self.tutorial_messages = [
-            "Welcome! Your city needs your help to become more eco-friendly.",
-            "First, let's learn to move around. Use ARROW KEYS or WASD to move your character.",
-            "Great! Now try to collect some energy scraps (gray circles) by walking over them.",
-            "You can reduce carbon by adding green spaces! Press '2' to plant on empty areas.",
-            "Now try installing solar panels on buildings. Press '1' on a building to install.",
-            "You can buy more items with money! Press 'M' to see your missions and goals.",
-            "Tutorial complete! Explore all features and complete your daily missions.",
+            "Use ARROW KEYS or WASD to move your character around the city.",
+            "Collect energy scraps (glowing orbs) by walking over them.",
+            "Drag the Green 🌿 card from inventory below onto empty tiles to add green spaces.",
+            "Drag the Solar ☀️ card from inventory onto buildings to install solar panels.",
+            "Press 'M' to see missions and shop. You can buy more items with money!",
+            "Tutorial complete! Use drag & drop or keyboard (1,2,3,etc) to play.",
         ]
         
         # Track tutorial actions to determine when to progress
@@ -136,8 +141,8 @@ class Game:
         self.show_tutorial = True  # Show tutorial instead of help at start
         
         # Ensure player has some resources for tutorial
-        self.player.solar_panels_available = max(self.player.solar_panels_available, 1)  # At least 1 solar panel for tutorial
-        self.player.green_spaces_available = max(self.player.green_spaces_available, 1)   # At least 1 green space for tutorial
+        self.player.solar_panels_available = max(self.player.solar_panels_available, 5)  # At least 5 solar panels for tutorial
+        self.player.green_spaces_available = max(self.player.green_spaces_available, 5)   # At least 5 green spaces for tutorial
         # Simulated NFC scan / student identity
         self.student_id: str = "Guest"
         self.awaiting_nfc: bool = True
@@ -145,6 +150,10 @@ class Game:
 
         # Bindings
         self.root.bind("<KeyPress>", self.on_key)
+        self.canvas.bind("<Button-1>", self.on_mouse_down)
+        self.canvas.bind("<B1-Motion>", self.on_mouse_drag)
+        self.canvas.bind("<ButtonRelease-1>", self.on_mouse_up)
+        self.canvas.bind("<Motion>", self.on_mouse_move)
 
         # Main loop
         self._tick()
@@ -210,10 +219,6 @@ class Game:
             if e.keysym.lower() in ("space", "return"):
                 self._reset_round()
             return
-        
-        # Handle tutorial progression - advance from initial message when any action occurs during step 0
-        if self.show_tutorial and self.tutorial_step == 0:
-            self.tutorial_step = 1
 
         px, py = self.player.pos
         moved = False
@@ -237,10 +242,10 @@ class Game:
             self.show_help = not self.show_help
         elif e.keysym.lower() == "m":
             # Check tutorial progress
-            if self.show_tutorial and not self.tutorial_actions_completed['viewed_missions'] and self.tutorial_step == 5:
+            if self.show_tutorial and not self.tutorial_actions_completed['viewed_missions'] and self.tutorial_step == 4:
                 self.tutorial_actions_completed['viewed_missions'] = True
                 self._check_tutorial_progress()
-            
+
             self.missions_visible = not self.missions_visible  # Always toggle missions display
         elif e.keysym.lower() == "c":
             self._action_clean_pollution()  # Clean pollution
@@ -254,20 +259,106 @@ class Game:
         if moved:
             self.player.pos = (px, py)
             # Check if we need to progress the tutorial
-            if self.show_tutorial and not self.tutorial_actions_completed['moved'] and self.tutorial_step == 1:
+            if self.show_tutorial and not self.tutorial_actions_completed['moved'] and self.tutorial_step == 0:
                 self.tutorial_actions_completed['moved'] = True
                 self._check_tutorial_progress()
-                
+
             # Pickup scraps if stepping onto one
             if hasattr(self, 'scraps') and self.player.pos in self.scraps:
                 self.scraps.remove(self.player.pos)
                 self.energy += 1
-                self._flash("Collected scrap: +1 Energy")
-                
+                self.player.money += 2  # Small money reward for collecting
+                self._flash("Collected scrap: +1 Energy, +$2")
+
                 # Check if we collected enough to progress tutorial
-                if self.show_tutorial and not self.tutorial_actions_completed['collected_scrap'] and self.tutorial_step == 2:
+                if self.show_tutorial and not self.tutorial_actions_completed['collected_scrap'] and self.tutorial_step == 1:
                     self.tutorial_actions_completed['collected_scrap'] = True
                     self._check_tutorial_progress()
+
+    # --- Mouse Input for Drag-and-Drop ---
+    def on_mouse_move(self, e: tk.Event):
+        """Track mouse position for hover effects"""
+        self.mouse_pos = (e.x, e.y)
+        # Update hover tile
+        grid_x = e.x // TILE
+        grid_y = e.y // TILE
+        if 0 <= grid_x < GRID_W and 0 <= grid_y < GRID_H:
+            self.hover_tile = (grid_x, grid_y)
+        else:
+            self.hover_tile = None
+
+    def on_mouse_down(self, e: tk.Event):
+        """Handle mouse down for starting drag from inventory"""
+        if not self.round_active or getattr(self, 'awaiting_nfc', False):
+            return
+
+        # Check if click is in the inventory area (bottom HUD)
+        y0 = GRID_H * TILE
+        if e.y >= y0:
+            # Check which inventory item was clicked
+            # Inventory items are positioned in the HUD
+            item = self._get_inventory_item_at(e.x, e.y)
+            if item:
+                self.dragging_item = item
+                self.drag_start_pos = (e.x, e.y)
+
+    def on_mouse_drag(self, e: tk.Event):
+        """Handle mouse drag for dragging items"""
+        if self.dragging_item:
+            self.mouse_pos = (e.x, e.y)
+            # Update hover tile
+            grid_x = e.x // TILE
+            grid_y = e.y // TILE
+            if 0 <= grid_x < GRID_W and 0 <= grid_y < GRID_H:
+                self.hover_tile = (grid_x, grid_y)
+            else:
+                self.hover_tile = None
+
+    def on_mouse_up(self, e: tk.Event):
+        """Handle mouse up for dropping items"""
+        if not self.dragging_item:
+            return
+
+        # Check if dropping on grid
+        grid_x = e.x // TILE
+        grid_y = e.y // TILE
+        if 0 <= grid_x < GRID_W and 0 <= grid_y < GRID_H:
+            # Attempt to place the item at this location
+            self.player.pos = (grid_x, grid_y)  # Move player to this location for placement
+
+            if self.dragging_item == 'solar':
+                self._action_place_solar()
+            elif self.dragging_item == 'green':
+                self._action_add_green()
+            elif self.dragging_item == 'bin':
+                self._action_place_bin()
+            elif self.dragging_item == 'road':
+                self._action_upgrade_road()
+
+        # Reset drag state
+        self.dragging_item = None
+        self.drag_start_pos = None
+        self.hover_tile = None
+
+    def _get_inventory_item_at(self, x: int, y: int) -> Optional[str]:
+        """Determine which inventory item was clicked"""
+        y0 = GRID_H * TILE
+
+        # Inventory cards are positioned at specific locations in the HUD
+        # Solar panel card
+        if 20 <= x <= 90 and y0 + 85 <= y <= y0 + 145:
+            return 'solar' if self.player.solar_panels_available > 0 else None
+        # Green space card
+        elif 100 <= x <= 170 and y0 + 85 <= y <= y0 + 145:
+            return 'green' if self.player.green_spaces_available > 0 else None
+        # Bin card
+        elif 180 <= x <= 250 and y0 + 85 <= y <= y0 + 145:
+            return 'bin' if self.player.money >= 5 else None
+        # Road upgrade card
+        elif 260 <= x <= 330 and y0 + 85 <= y <= y0 + 145:
+            return 'road'
+
+        return None
 
     # --- Actions ---
     def _action_place_solar(self):
@@ -286,11 +377,12 @@ class Game:
                         mission["current"] += 1
                         if mission["current"] >= mission["target"]:
                             mission["completed"] = True
-                            self.player.money += 10  # Reward for completing mission
-                            self._flash(f"Mission completed: {mission['title']}! +10 money")
-                
+                            self.player.money += 25  # Reward for completing mission
+                            self._flash(f"Mission completed: {mission['title']}! +$25")
+
+
                 # Check tutorial progress
-                if self.show_tutorial and not self.tutorial_actions_completed['placed_solar'] and self.tutorial_step == 4:
+                if self.show_tutorial and not self.tutorial_actions_completed['placed_solar'] and self.tutorial_step == 3:
                     self.tutorial_actions_completed['placed_solar'] = True
                     self._check_tutorial_progress()
                     self._flash("Solar panel installed! Great job! Now check your missions with 'M'.")
@@ -319,14 +411,15 @@ class Game:
                             mission["current"] += 1
                             if mission["current"] >= mission["target"]:
                                 mission["completed"] = True
-                                self.player.money += 10  # Reward for completing mission
-                                self._flash(f"Mission completed: {mission['title']}! +10 money")
-                    
+                                self.player.money += 25  # Reward for completing mission
+                                self._flash(f"Mission completed: {mission['title']}! +$25")
+
+
                     # Check tutorial progress
-                    if self.show_tutorial and not self.tutorial_actions_completed['placed_green'] and self.tutorial_step == 3:
+                    if self.show_tutorial and not self.tutorial_actions_completed['placed_green'] and self.tutorial_step == 2:
                         self.tutorial_actions_completed['placed_green'] = True
                         self._check_tutorial_progress()
-                        self._flash("Green space placed! Well done! Now install a solar panel with '1'.")
+                        self._flash("Green space placed! Well done! Now drag a solar panel onto a building.")
                     
                     self._flash("Green space added: cleaner air!")
                 else:
@@ -377,8 +470,8 @@ class Game:
                     mission["current"] += 1
                     if mission["current"] >= mission["target"]:
                         mission["completed"] = True
-                        self.player.money += 10  # Reward for completing mission
-                        self._flash(f"Mission completed: {mission['title']}! +10 money")
+                        self.player.money += 20  # Reward for completing mission
+                        self._flash(f"Mission completed: {mission['title']}! +$20")
         else:
             self._flash("Clean pollution spots (C)")
 
@@ -424,8 +517,8 @@ class Game:
                     mission["current"] = int(self.start_carbon - self.carbon)
                     if mission["current"] >= mission["target"]:
                         mission["completed"] = True
-                        self.player.money += 15  # Bigger reward for carbon reduction
-                        self._flash(f"Mission completed: {mission['title']}! +15 money")
+                        self.player.money += 40  # Bigger reward for carbon reduction (hardest mission)
+                        self._flash(f"Mission completed: {mission['title']}! +$40")
 
     def _flash(self, msg: str, seconds: float = 1.8):
         self.flash_text = (msg, time.time() + seconds)
@@ -502,12 +595,19 @@ class Game:
         self._draw_player()
         self._draw_compi()
         self._draw_hud2()
+        self._draw_inventory()  # Draw the drag-and-drop inventory
+        self._draw_drag_feedback()  # Draw feedback when dragging
+
+        # Draw missions panel if visible (can show alongside tutorial)
+        if self.missions_visible:
+            self._draw_missions()
+
+        # Draw tutorial or help overlay on top
         if self.show_tutorial and self.tutorial_step < len(self.tutorial_messages):
             self._draw_tutorial()
         elif self.show_help:
             self._draw_help()
-        elif self.missions_visible:  # Only show missions when help is not active
-            self._draw_missions()
+
         self._draw_overlays()
         if not self.round_active:
             self._draw_end_screen2()
@@ -565,7 +665,13 @@ class Game:
                 x0, y0 = x * TILE, y * TILE
                 x1, y1 = x0 + TILE, y0 + TILE
                 color = self._tile_color(t)
-                
+
+                # Draw shadow for depth effect (offset by 2 pixels)
+                shadow_offset = 2
+                self.canvas.create_rectangle(x0 + shadow_offset, y0 + shadow_offset,
+                                            x1 + shadow_offset, y1 + shadow_offset,
+                                            fill="#000000", outline="", stipple="gray25")
+
                 # Draw tile with rounded corners effect
                 self.canvas.create_rectangle(x0, y0, x1, y1, fill=color, outline="#2a2a2a", width=1)
                 
@@ -714,10 +820,17 @@ class Game:
         # Draw player as a more detailed and refined character
         center_x = x0 + TILE // 2
         center_y = y0 + TILE // 2
-        
+
+        # Draw shadow underneath player for depth
+        shadow_offset_x = 2
+        shadow_offset_y = 4
+        self.canvas.create_oval(center_x - 12 + shadow_offset_x, center_y - 10 + shadow_offset_y,
+                               center_x + 12 + shadow_offset_x, center_y - 4 + shadow_offset_y,
+                               fill="#000000", outline="", stipple="gray50")
+
         # Draw body with more detail
         body_color = "#ffd166"  # Skin tone
-        self.canvas.create_oval(center_x - 14, center_y - 14, center_x + 14, center_y + 14, 
+        self.canvas.create_oval(center_x - 14, center_y - 14, center_x + 14, center_y + 14,
                                 fill=body_color, outline="#000000", width=2)
         
         # Draw clothing (a simple shirt)
@@ -1052,23 +1165,40 @@ class Game:
             # Draw energy scraps as more appealing energy crystals
             center_x = x0 + 4
             center_y = y0 + 4
-            
-            # Draw energy crystal with multiple layers
-            # Outer glow
-            self.canvas.create_oval(center_x - 6, center_y - 6, center_x + 6, center_y + 6, 
-                                   fill="", outline="#d1d5db", width=1, stipple="gray25")
-            # Main crystal
-            self.canvas.create_oval(center_x - 5, center_y - 5, center_x + 5, center_y + 5, 
+
+            # Pulsing animation effect
+            pulse = abs(math.sin(time.time() * 3)) * 2 + 1
+
+            # Draw multiple glow layers for depth
+            for i in range(3):
+                glow_size = 8 + i * 3 + pulse
+                glow_alpha = ["gray12", "gray25", "gray50"][i]
+                self.canvas.create_oval(center_x - glow_size, center_y - glow_size,
+                                       center_x + glow_size, center_y + glow_size,
+                                       fill="#fef08a", outline="", stipple=glow_alpha)
+
+            # Main crystal with gradient effect
+            self.canvas.create_oval(center_x - 5, center_y - 5, center_x + 5, center_y + 5,
                                    fill="#9ca3af", outline="#4b5563", width=1)
+
             # Inner core with energy effect
-            self.canvas.create_oval(center_x - 3, center_y - 3, center_x + 3, center_y + 3, 
+            self.canvas.create_oval(center_x - 3, center_y - 3, center_x + 3, center_y + 3,
                                    fill="#fbbf24", outline="#f59e0b", width=1)
-            # Energy lines shooting out
-            for angle in [0, 45, 90, 135]:
-                rad = math.radians(angle)
-                line_x = center_x + 8 * math.cos(rad)
-                line_y = center_y + 8 * math.sin(rad)
-                self.canvas.create_line(center_x, center_y, line_x, line_y, 
+
+            # Animated energy sparkle
+            sparkle_size = abs(math.sin(time.time() * 5 + x + y)) * 2
+            self.canvas.create_oval(center_x - sparkle_size/2, center_y - sparkle_size/2,
+                                   center_x + sparkle_size/2, center_y + sparkle_size/2,
+                                   fill="#fef9c3", outline="")
+
+            # Energy lines shooting out with rotation
+            rotation_offset = time.time() * 50
+            for angle in [0, 45, 90, 135, 180, 225, 270, 315]:
+                rad = math.radians(angle + rotation_offset)
+                line_length = 8 + abs(math.sin(time.time() * 2 + angle)) * 2
+                line_x = center_x + line_length * math.cos(rad)
+                line_y = center_y + line_length * math.sin(rad)
+                self.canvas.create_line(center_x, center_y, line_x, line_y,
                                        fill="#fbbf24", width=1, dash=(2, 2))
 
     def _world_health_score(self) -> float:
@@ -1090,50 +1220,28 @@ class Game:
             self.canvas.create_text(x0+w//2, y0+92, text=f"ID: {self.student_id}", fill="#93c5fd", font=("Consolas", 12, "bold"))
             return
 
-        # Quick Overview 0:00–0:15 - More visual with arrow indicators
+        # Welcome message banner - shows for first 3 seconds at the center
         elapsed = time.time() - self.round_start
-        if 0 <= elapsed <= 15:
-            # Full-width, top-centered overlay
-            w, h = CANVAS_W - 40, 120
-            x0, y0 = 20, 20
-            self.canvas.create_rectangle(x0, y0, x0+w, y0+h, fill="#0f172a", outline="#334155", width=2)
-            
+        if 0 <= elapsed <= 3:
+            # Centered welcome banner
+            w, h = 320, 60
+            x0 = (CANVAS_W - w) // 2
+            y0 = (CANVAS_H - h) // 2 - 100
+
+            # Shadow
+            self.canvas.create_rectangle(x0 + 3, y0 + 3, x0 + w + 3, y0 + h + 3,
+                                        fill="#000000", outline="", stipple="gray50")
+
+            self.canvas.create_rectangle(x0, y0, x0+w, y0+h, fill="#0f172a", outline="#3b82f6", width=3)
+
             # Title
-            self.canvas.create_text(x0+w//2, y0+20, text="Welcome to EcoDistrict!", 
-                                    fill="#e2e8f0", font=("Segoe UI", 14, "bold"))
-            
+            self.canvas.create_text(x0+w//2, y0+20, text="🌍 Welcome to EcoDistrict!",
+                                    fill="#60a5fa", font=("Segoe UI", 14, "bold"))
+
             # Brief description
-            self.canvas.create_text(x0+w//2, y0+45, text="Improve your city by adding green spaces and clean energy!", 
+            self.canvas.create_text(x0+w//2, y0+40, text="Make your city eco-friendly!",
                                     fill="#cbd5e1", font=("Segoe UI", 10))
-            
-            # Visual instruction with arrows
-            self.canvas.create_text(x0+w//2, y0+75, text="Use ARROW KEYS to move around", 
-                                    fill="#94a3b8", font=("Segoe UI", 10, "italic"))
-            
-            # Draw directional arrows
-            center_x, center_y = x0+w//2, y0+100
-            arrow_size = 8
-            # Up arrow
-            self.canvas.create_polygon(center_x, center_y-arrow_size, 
-                                      center_x-arrow_size//2, center_y, 
-                                      center_x+arrow_size//2, center_y, 
-                                      fill="#e2e8f0", outline="#000000")
-            # Down arrow
-            self.canvas.create_polygon(center_x, center_y+arrow_size, 
-                                      center_x-arrow_size//2, center_y, 
-                                      center_x+arrow_size//2, center_y, 
-                                      fill="#e2e8f0", outline="#000000")
-            # Left arrow
-            self.canvas.create_polygon(center_x-arrow_size, center_y, 
-                                      center_x, center_y-arrow_size//2, 
-                                      center_x, center_y+arrow_size//2, 
-                                      fill="#e2e8f0", outline="#000000")
-            # Right arrow
-            self.canvas.create_polygon(center_x+arrow_size, center_y, 
-                                      center_x, center_y-arrow_size//2, 
-                                      center_x, center_y+arrow_size//2, 
-                                      fill="#e2e8f0", outline="#000000")
-        
+
         # Add a subtle visual guide for key actions when help is enabled
         elif self.show_help and not getattr(self, 'awaiting_nfc', False):
             # Draw visual indicators for game controls at the bottom
@@ -1252,9 +1360,175 @@ class Game:
         target = self.challenge_target
         achieved = self.carbon <= target
         ch_color = "#22c55e" if achieved else "#f59e0b"
-        self.canvas.create_text(CANVAS_W // 2, y0 + HUD_H - 20, 
-                                text=f"Goal: carbon ≤ {target}", 
+        self.canvas.create_text(CANVAS_W // 2, y0 + HUD_H - 20,
+                                text=f"Goal: carbon ≤ {target}",
                                 fill=ch_color, font=("Segoe UI", 11, "bold"))
+
+    def _draw_inventory(self):
+        """Draw the drag-and-drop inventory panel with item cards"""
+        if not self.round_active or getattr(self, 'awaiting_nfc', False):
+            return
+
+        y0 = GRID_H * TILE
+        card_width = 70
+        card_height = 60
+        spacing = 10
+        start_x = 20
+        start_y = y0 + 85
+
+        # Draw inventory background with gradient effect
+        self.canvas.create_text(20, y0 + 78, text="🎒 Inventory - Drag items to place:",
+                                fill="#cbd5e1", font=("Segoe UI", 9, "bold"), anchor="w")
+
+        # Check if mouse is hovering over any card
+        is_hovering = False
+        hover_card = None
+        if self.mouse_pos:
+            mx, my = self.mouse_pos
+            if start_y <= my <= start_y + card_height:
+                if start_x <= mx <= start_x + card_width:
+                    hover_card = 'solar'
+                elif start_x + card_width + spacing <= mx <= start_x + 2*card_width + spacing:
+                    hover_card = 'green'
+                elif start_x + 2*(card_width + spacing) <= mx <= start_x + 3*card_width + 2*spacing:
+                    hover_card = 'bin'
+                elif start_x + 3*(card_width + spacing) <= mx <= start_x + 4*card_width + 3*spacing:
+                    hover_card = 'road'
+
+        # Solar Panel Card
+        solar_available = self.player.solar_panels_available
+        solar_color = "#fbbf24" if solar_available > 0 else "#374151"
+        solar_border = "#f59e0b" if solar_available > 0 else "#1f2937"
+        is_solar_hover = hover_card == 'solar' and solar_available > 0
+
+        x = start_x
+        # Draw shadow for hover effect
+        if is_solar_hover:
+            self.canvas.create_rectangle(x + 2, start_y + 2, x + card_width + 2, start_y + card_height + 2,
+                                        fill="#000000", outline="", stipple="gray50")
+        self.canvas.create_rectangle(x, start_y, x + card_width, start_y + card_height,
+                                     fill=solar_color, outline=solar_border, width=3 if is_solar_hover else 2)
+        self.canvas.create_text(x + card_width // 2, start_y + 15, text="☀️",
+                                fill="#ffffff", font=("Arial", 20))
+        self.canvas.create_text(x + card_width // 2, start_y + 40, text="Solar",
+                                fill="#000000", font=("Segoe UI", 9, "bold"))
+        self.canvas.create_text(x + card_width // 2, start_y + 52, text=f"x{solar_available}",
+                                fill="#000000", font=("Segoe UI", 8))
+
+        # Green Space Card
+        green_available = self.player.green_spaces_available
+        green_color = "#86efac" if green_available > 0 else "#374151"
+        green_border = "#22c55e" if green_available > 0 else "#1f2937"
+        is_green_hover = hover_card == 'green' and green_available > 0
+
+        x = start_x + card_width + spacing
+        # Draw shadow for hover effect
+        if is_green_hover:
+            self.canvas.create_rectangle(x + 2, start_y + 2, x + card_width + 2, start_y + card_height + 2,
+                                        fill="#000000", outline="", stipple="gray50")
+        self.canvas.create_rectangle(x, start_y, x + card_width, start_y + card_height,
+                                     fill=green_color, outline=green_border, width=3 if is_green_hover else 2)
+        self.canvas.create_text(x + card_width // 2, start_y + 15, text="🌿",
+                                fill="#ffffff", font=("Arial", 20))
+        self.canvas.create_text(x + card_width // 2, start_y + 40, text="Green",
+                                fill="#000000", font=("Segoe UI", 9, "bold"))
+        self.canvas.create_text(x + card_width // 2, start_y + 52, text=f"x{green_available}",
+                                fill="#000000", font=("Segoe UI", 8))
+
+        # Bin Card
+        can_afford_bin = self.player.money >= 5
+        bin_color = "#a78bfa" if can_afford_bin else "#374151"
+        bin_border = "#8b5cf6" if can_afford_bin else "#1f2937"
+        is_bin_hover = hover_card == 'bin' and can_afford_bin
+
+        x = start_x + 2 * (card_width + spacing)
+        # Draw shadow for hover effect
+        if is_bin_hover:
+            self.canvas.create_rectangle(x + 2, start_y + 2, x + card_width + 2, start_y + card_height + 2,
+                                        fill="#000000", outline="", stipple="gray50")
+        self.canvas.create_rectangle(x, start_y, x + card_width, start_y + card_height,
+                                     fill=bin_color, outline=bin_border, width=3 if is_bin_hover else 2)
+        self.canvas.create_text(x + card_width // 2, start_y + 15, text="🗑️",
+                                fill="#ffffff", font=("Arial", 20))
+        self.canvas.create_text(x + card_width // 2, start_y + 40, text="Bin",
+                                fill="#000000", font=("Segoe UI", 9, "bold"))
+        self.canvas.create_text(x + card_width // 2, start_y + 52, text="$5",
+                                fill="#000000", font=("Segoe UI", 8))
+
+        # Road Upgrade Card
+        road_color = "#93c5fd"
+        road_border = "#3b82f6"
+        is_road_hover = hover_card == 'road'
+
+        x = start_x + 3 * (card_width + spacing)
+        # Draw shadow for hover effect
+        if is_road_hover:
+            self.canvas.create_rectangle(x + 2, start_y + 2, x + card_width + 2, start_y + card_height + 2,
+                                        fill="#000000", outline="", stipple="gray50")
+        self.canvas.create_rectangle(x, start_y, x + card_width, start_y + card_height,
+                                     fill=road_color, outline=road_border, width=3 if is_road_hover else 2)
+        self.canvas.create_text(x + card_width // 2, start_y + 15, text="🚲",
+                                fill="#ffffff", font=("Arial", 20))
+        self.canvas.create_text(x + card_width // 2, start_y + 40, text="Road",
+                                fill="#000000", font=("Segoe UI", 9, "bold"))
+        self.canvas.create_text(x + card_width // 2, start_y + 52, text="Free",
+                                fill="#000000", font=("Segoe UI", 8))
+
+    def _draw_drag_feedback(self):
+        """Draw visual feedback when dragging an item"""
+        if not self.dragging_item or not self.mouse_pos:
+            return
+
+        mx, my = self.mouse_pos
+
+        # Draw semi-transparent preview of the item being dragged
+        icon_size = 30
+        icon_map = {
+            'solar': '☀️',
+            'green': '🌿',
+            'bin': '🗑️',
+            'road': '🚲'
+        }
+
+        # Draw icon following cursor
+        if self.dragging_item in icon_map:
+            self.canvas.create_text(mx, my, text=icon_map[self.dragging_item],
+                                   font=("Arial", icon_size))
+
+        # Highlight the tile being hovered over
+        if self.hover_tile:
+            hx, hy = self.hover_tile
+            x0, y0 = hx * TILE, hy * TILE
+            x1, y1 = x0 + TILE, y0 + TILE
+
+            # Check if placement is valid
+            tile = self.grid[hy][hx]
+            is_valid = False
+
+            if self.dragging_item == 'solar':
+                is_valid = tile.kind == TileType.BUILDING and not tile.has_solar and self.player.solar_panels_available > 0
+            elif self.dragging_item == 'green':
+                is_valid = tile.kind in (TileType.EMPTY, TileType.PARK) and tile.kind != TileType.GREEN and self.player.green_spaces_available > 0
+            elif self.dragging_item == 'bin':
+                is_valid = tile.kind == TileType.EMPTY and self.player.money >= 5
+            elif self.dragging_item == 'road':
+                is_valid = tile.kind == TileType.ROAD and not tile.upgraded
+
+            # Draw highlight with appropriate color
+            highlight_color = "#22c55e" if is_valid else "#ef4444"
+            self.canvas.create_rectangle(x0, y0, x1, y1, outline=highlight_color, width=3,
+                                        stipple="" if is_valid else "gray50")
+
+            # Draw corner markers for better visibility
+            corner_size = 8
+            self.canvas.create_line(x0, y0, x0 + corner_size, y0, fill=highlight_color, width=3)
+            self.canvas.create_line(x0, y0, x0, y0 + corner_size, fill=highlight_color, width=3)
+            self.canvas.create_line(x1, y0, x1 - corner_size, y0, fill=highlight_color, width=3)
+            self.canvas.create_line(x1, y0, x1, y0 + corner_size, fill=highlight_color, width=3)
+            self.canvas.create_line(x0, y1, x0 + corner_size, y1, fill=highlight_color, width=3)
+            self.canvas.create_line(x0, y1, x0, y1 - corner_size, fill=highlight_color, width=3)
+            self.canvas.create_line(x1, y1, x1 - corner_size, y1, fill=highlight_color, width=3)
+            self.canvas.create_line(x1, y1, x1, y1 - corner_size, fill=highlight_color, width=3)
 
     def _draw_hud(self):
         y0 = GRID_H * TILE
@@ -1319,16 +1593,15 @@ class Game:
             "Reduce carbon by upgrading your district 🌍",
             " ",  # Empty line for spacing
             " Movement: 🡅 🡇 🡄 🡆 / WASD",
-            " Place Solar: 1 (on buildings ⬛) - Use available panels",
-            " Add Green Space: 2 (on empty/grass 🟢) - Use available items",
-            " Upgrade Roads: 3 (bike/pedestrian 🚴)",
+            " 🖱️ DRAG & DROP: Click and drag items from inventory!",
+            " Place Solar: 1 or DRAG (on buildings ⬛)",
+            " Add Green Space: 2 or DRAG (on empty/grass 🟢)",
+            " Upgrade Roads: 3 or DRAG (bike/pedestrian 🚴)",
             " Feed Building: F (use collected energy ⚡)",
             " Clean Pollution: C (stand on pollution 🗑️)",
-            " Buy Solar: 5 ($15)",
-            " Buy Green: 6 ($10)", 
-            " Place Bin: B (on empty, $5)",
-            " Toggle Missions: M",
-            " Toggle Help: H"
+            " Buy Solar: 5 ($15) | Buy Green: 6 ($10)",
+            " Place Bin: B or DRAG (on empty, $5)",
+            " Toggle Missions: M | Toggle Help: H"
         ]
         
         for i, line in enumerate(instructions):
@@ -1347,20 +1620,20 @@ class Game:
     def _check_tutorial_progress(self):
         # Check which actions have been completed and advance tutorial accordingly
         # Only advance if we're currently on that step
-        if self.tutorial_step == 1 and self.tutorial_actions_completed['moved']:
+        if self.tutorial_step == 0 and self.tutorial_actions_completed['moved']:
+            self.tutorial_step = 1
+            self._flash("Great! Now collect energy scraps.")
+        elif self.tutorial_step == 1 and self.tutorial_actions_completed['collected_scrap']:
             self.tutorial_step = 2
-            self._flash("Great! Now collect some energy scraps.")
-        elif self.tutorial_step == 2 and self.tutorial_actions_completed['collected_scrap']:
+            self._flash("Excellent! Now drag a green space from inventory.")
+        elif self.tutorial_step == 2 and self.tutorial_actions_completed['placed_green']:
             self.tutorial_step = 3
-            self._flash("Excellent! Now place a green space using '2'.")
-        elif self.tutorial_step == 3 and self.tutorial_actions_completed['placed_green']:
+            self._flash("Well done! Now drag a solar panel onto a building.")
+        elif self.tutorial_step == 3 and self.tutorial_actions_completed['placed_solar']:
             self.tutorial_step = 4
-            self._flash("Well done! Now install a solar panel using '1'.")
-        elif self.tutorial_step == 4 and self.tutorial_actions_completed['placed_solar']:
-            self.tutorial_step = 5
-            self._flash("Perfect! Now check your missions using 'M'.")
-        elif self.tutorial_step == 5 and self.tutorial_actions_completed['viewed_missions']:
-            self.tutorial_step = 6  # Tutorial complete
+            self._flash("Perfect! Press 'M' to see missions and shop.")
+        elif self.tutorial_step == 4 and self.tutorial_actions_completed['viewed_missions']:
+            self.tutorial_step = 5  # Tutorial complete
             self.show_tutorial = False  # Hide tutorial and show regular help option
             self._flash("Tutorial complete! Press 'H' for help anytime.")
 
@@ -1370,48 +1643,35 @@ class Game:
             message = self.tutorial_messages[self.tutorial_step]
         else:
             return  # No more tutorial steps
-            
-        # Create a semi-transparent overlay
-        self.canvas.create_rectangle(0, 0, CANVAS_W, CANVAS_H, fill="#000000", stipple="gray25")
-        
-        # Create a tutorial box
-        box_width = min(600, CANVAS_W - 40)
-        box_height = 150
-        x0 = (CANVAS_W - box_width) // 2
-        y0 = CANVAS_H - box_height - 20
-        
+
+        # Create a compact tutorial box - positioned at TOP LEFT to not block gameplay
+        box_width = min(360, CANVAS_W - 20)
+        box_height = 100
+        x0 = 10
+        y0 = 10  # Top of screen
+
+        # Draw shadow for depth
+        self.canvas.create_rectangle(x0 + 2, y0 + 2, x0 + box_width + 2, y0 + box_height + 2,
+                                     fill="#000000", outline="", stipple="gray50")
+
+        # Draw box with semi-transparent background
         self.canvas.create_rectangle(x0, y0, x0 + box_width, y0 + box_height,
-                                    fill="#0f172a", outline="#64748b", width=2)
-        
-        # Add tutorial step indicator
-        self.canvas.create_text(x0 + box_width // 2, y0 + 20,
-                                text=f"Tutorial Step {self.tutorial_step + 1}/{len(self.tutorial_messages)}",
-                                fill="#60a5fa", font=("Segoe UI", 12, "bold"))
-        
-        # Add tutorial message
+                                    fill="#0f172a", outline="#3b82f6", width=2)
+
+        # Add tutorial step indicator - compact
+        self.canvas.create_text(x0 + 10, y0 + 15,
+                                text=f"📍 Tutorial {self.tutorial_step + 1}/{len(self.tutorial_messages)}",
+                                fill="#60a5fa", font=("Segoe UI", 10, "bold"), anchor="w")
+
+        # Add tutorial message (main instruction) - more compact
         self.canvas.create_text(x0 + box_width // 2, y0 + 50,
                                 text=message,
-                                fill="#e2e8f0", font=("Segoe UI", 11), width=box_width - 20)
-        
-        # Add action hint based on tutorial step
-        hints = [
-            "Press any key to start moving",
-            "Walk over the gray energy scraps to collect them", 
-            "Find an empty space and press '2' to plant greenery",
-            "Find a building and press '1' to install solar panels",
-            "Press 'M' to view your daily missions",
-            "Use '5' to buy solar panels and '6' to buy green spaces"
-        ]
-        
-        if self.tutorial_step < len(hints):
-            self.canvas.create_text(x0 + box_width // 2, y0 + 90,
-                                    text=hints[self.tutorial_step],
-                                    fill="#fbbf24", font=("Segoe UI", 10, "italic"), width=box_width - 20)
-        
-        # Add continue instruction
-        self.canvas.create_text(x0 + box_width // 2, y0 + box_height - 20,
-                                text="Continue to next step",
-                                fill="#94a3b8", font=("Segoe UI", 9, "italic"))
+                                fill="#e2e8f0", font=("Segoe UI", 10), width=box_width - 20)
+
+        # Add continue instruction - very compact
+        self.canvas.create_text(x0 + box_width // 2, y0 + box_height - 15,
+                                text="⏩ Complete action to continue",
+                                fill="#94a3b8", font=("Segoe UI", 8, "italic"))
 
     def _draw_missions(self):
         # Draw missions panel when missions are visible
@@ -1421,23 +1681,33 @@ class Game:
         active_missions = [m for m in self.daily_missions if not m["completed"]]
         completed_missions = [m for m in self.daily_missions if m["completed"]]
         total_missions = len(self.daily_missions)
-        
-        box_height = 100 + (len(active_missions) + len(completed_missions)) * 30  # Dynamic height
-        
+
+        # Increased height to include shop section
+        box_height = 260 + (len(active_missions) + len(completed_missions)) * 30  # Dynamic height
+
         x0 = CANVAS_W - box_width - pad  # Position on the right side
         y0 = pad
-        
+
         # Draw mission panel with semi-transparent background
-        self.canvas.create_rectangle(x0, y0, x0+box_width, y0+box_height, 
+        self.canvas.create_rectangle(x0, y0, x0+box_width, y0+box_height,
                                     fill="#0f172a", outline="#64748b", width=2)
-        
+
         # Title
-        self.canvas.create_text(x0 + box_width//2, y0 + 20, 
-                                text="🎯 Daily Missions", 
+        self.canvas.create_text(x0 + box_width//2, y0 + 20,
+                                text="🎯 Daily Missions",
                                 fill="#e2e8f0", font=("Segoe UI", 14, "bold"))
-        
+
+        # Calculate total possible earnings
+        total_possible = sum(m["reward"] for m in self.daily_missions)
+        completed_earnings = sum(m["reward"] for m in self.daily_missions if m["completed"])
+
+        # Display earnings progress
+        self.canvas.create_text(x0 + box_width//2, y0 + 35,
+                                text=f"💰 Earned: ${completed_earnings} / ${total_possible}",
+                                fill="#fde68a", font=("Segoe UI", 9, "bold"))
+
         # Active missions
-        mission_y = y0 + 40
+        mission_y = y0 + 50
         for i, mission in enumerate(self.daily_missions):
             # Determine color based on completion
             if mission["completed"]:
@@ -1446,17 +1716,91 @@ class Game:
             else:
                 color = "#fbbf24"  # Yellow for in-progress
                 status = "⏳"
-            
+
             # Draw mission text
             progress_text = f" {mission['current']}/{mission['target']}" if mission['type'] != 'reduce_carbon' else ""
             mission_text = f"{status} {mission['title']}{progress_text}"
-            self.canvas.create_text(x0 + 10, mission_y + i*30, 
-                                    text=mission_text, 
+            self.canvas.create_text(x0 + 10, mission_y + i*30,
+                                    text=mission_text,
                                     fill=color, font=("Segoe UI", 10), anchor="w")
-        
+
+            # Draw reward amount on the right side
+            reward_text = f"+${mission['reward']}"
+            reward_color = "#86efac" if mission["completed"] else "#fde68a"
+            self.canvas.create_text(x0 + box_width - 15, mission_y + i*30,
+                                    text=reward_text,
+                                    fill=reward_color, font=("Segoe UI", 10, "bold"), anchor="e")
+
+        # Draw separator line
+        separator_y = mission_y + len(self.daily_missions) * 30 + 15
+        self.canvas.create_line(x0 + 20, separator_y, x0 + box_width - 20, separator_y,
+                               fill="#475569", width=2)
+
+        # Shop section
+        shop_y = separator_y + 20
+        self.canvas.create_text(x0 + box_width//2, shop_y,
+                                text="🛒 Shop - Buy Items",
+                                fill="#e2e8f0", font=("Segoe UI", 13, "bold"))
+
+        # Display current money
+        money_y = shop_y + 25
+        self.canvas.create_text(x0 + box_width//2, money_y,
+                               text=f"💰 Money: ${self.player.money}",
+                               fill="#fde68a", font=("Segoe UI", 11, "bold"))
+
+        # Shop items with cards
+        card_y = money_y + 30
+        card_width = (box_width - 50) // 2  # Two cards side by side
+        card_height = 80
+        spacing = 10
+
+        # Solar Panel Shop Card
+        solar_card_x = x0 + 15
+        can_afford_solar = self.player.money >= 15
+        solar_bg = "#fbbf24" if can_afford_solar else "#374151"
+        solar_border = "#f59e0b" if can_afford_solar else "#1f2937"
+
+        self.canvas.create_rectangle(solar_card_x, card_y,
+                                     solar_card_x + card_width, card_y + card_height,
+                                     fill=solar_bg, outline=solar_border, width=2)
+        self.canvas.create_text(solar_card_x + card_width//2, card_y + 15,
+                               text="☀️", font=("Arial", 20))
+        self.canvas.create_text(solar_card_x + card_width//2, card_y + 38,
+                               text="Solar Panel", fill="#000000",
+                               font=("Segoe UI", 10, "bold"))
+        self.canvas.create_text(solar_card_x + card_width//2, card_y + 54,
+                               text="Cost: $15", fill="#000000",
+                               font=("Segoe UI", 9))
+        self.canvas.create_text(solar_card_x + card_width//2, card_y + 68,
+                               text="Press 5 to buy" if can_afford_solar else "Not enough $",
+                               fill="#065f46" if can_afford_solar else "#991b1b",
+                               font=("Segoe UI", 8, "bold"))
+
+        # Green Space Shop Card
+        green_card_x = solar_card_x + card_width + spacing
+        can_afford_green = self.player.money >= 10
+        green_bg = "#86efac" if can_afford_green else "#374151"
+        green_border = "#22c55e" if can_afford_green else "#1f2937"
+
+        self.canvas.create_rectangle(green_card_x, card_y,
+                                     green_card_x + card_width, card_y + card_height,
+                                     fill=green_bg, outline=green_border, width=2)
+        self.canvas.create_text(green_card_x + card_width//2, card_y + 15,
+                               text="🌿", font=("Arial", 20))
+        self.canvas.create_text(green_card_x + card_width//2, card_y + 38,
+                               text="Green Space", fill="#000000",
+                               font=("Segoe UI", 10, "bold"))
+        self.canvas.create_text(green_card_x + card_width//2, card_y + 54,
+                               text="Cost: $10", fill="#000000",
+                               font=("Segoe UI", 9))
+        self.canvas.create_text(green_card_x + card_width//2, card_y + 68,
+                               text="Press 6 to buy" if can_afford_green else "Not enough $",
+                               fill="#065f46" if can_afford_green else "#991b1b",
+                               font=("Segoe UI", 8, "bold"))
+
         # Add close instruction
-        self.canvas.create_text(x0 + box_width//2, y0 + box_height - 20, 
-                                text="Press M to close", 
+        self.canvas.create_text(x0 + box_width//2, y0 + box_height - 15,
+                                text="Press M to close",
                                 fill="#94a3b8", font=("Segoe UI", 9, "italic"))
 
     def _draw_end_screen(self):
